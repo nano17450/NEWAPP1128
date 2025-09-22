@@ -1,0 +1,25 @@
+name: elevate_app_v2
+description: Una sencilla app de empresa en Flutter
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core: ^4.1.0
+  firebase_auth: ^6.0.2
+  cloud_firestore: ^6.0.1
+  js: ^0.7.2
+  file_picker: ^6.1.1
+  firebase_storage: ^13.0.1
+  country_picker: ^2.0.21
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
