@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'project_details_dialog.dart';
+import '../screens/project_screen.dart';
 
-class ProjectsCard extends StatelessWidget {
-  const ProjectsCard({super.key});
+class ProjectsCard extends StatefulWidget {
+  final bool isAdmin;
+  const ProjectsCard({super.key, required this.isAdmin});
+
+  @override
+  State<ProjectsCard> createState() => _ProjectsCardState();
+}
+
+class _ProjectsCardState extends State<ProjectsCard> {
+  bool _expanded = false;
 
   void _showProjectInfo(BuildContext context, Map<String, dynamic> project) {
     showDialog(
@@ -17,104 +26,113 @@ class ProjectsCard extends StatelessWidget {
     return Align(
       alignment: Alignment.topLeft,
       child: Card(
+        color: Colors.white,
         elevation: 3,
         margin: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         child: Container(
           width: 400,
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(1),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'PROJECTS',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
-                  color: Theme.of(context).primaryColor,
-                  height: 1.0,
-                ),
-              ),
-              SizedBox(height: 8),
-              StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('projects')
-                    .orderBy('createdAt', descending: true)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  }
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Text('No projects found.', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    );
-                  }
-                  return ListView.separated(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: snapshot.data!.docs.length,
-                    separatorBuilder: (context, index) => SizedBox.shrink(),
-                    itemBuilder: (context, index) {
-                      final doc = snapshot.data!.docs[index];
-                      final data = doc.data() as Map<String, dynamic>;
-                      final name = data['name'] ?? '';
-                      final timestamp = data['createdAt'] as Timestamp?;
-                      final date = timestamp != null
-                          ? DateTime.fromMillisecondsSinceEpoch(timestamp.millisecondsSinceEpoch)
-                          : null;
-                      final formattedDate = date != null
-                          ? '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}'
-                          : 'Unknown date';
-                      return Card(
-                        elevation: 1,
-                        margin: EdgeInsets.symmetric(vertical: 2),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: TextButton(
-                                  style: TextButton.styleFrom(
-                                    alignment: Alignment.centerLeft,
-                                    padding: EdgeInsets.zero,
-                                    foregroundColor: Theme.of(context).primaryColor,
-                                    textStyle: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w400,
-                                      height: 0.9,
-                                      letterSpacing: 0,
-                                    ),
-                                  ),
-                                  onPressed: () => _showProjectInfo(context, data),
-                                  child: Text(name, overflow: TextOverflow.ellipsis),
-                                ),
-                              ),
-                              Text(
-                                formattedDate,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey[600],
-                                  fontStyle: FontStyle.italic,
-                                  height: 0.9,
-                                  letterSpacing: 0,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
+              Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: Text(
+                        'PROJECTS',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
+                          color: Theme.of(context).primaryColor,
+                         height: 1.0,
+                        )
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more, size: 20),
+                    tooltip: _expanded ? 'Minimizar' : 'Expandir',
+                    onPressed: () {
+                      setState(() {
+                        _expanded = !_expanded;
+                      });
                     },
-                  );
-                },
+                  ),
+                ],
               ),
+              if (_expanded) ...[
+                SizedBox(height: 8),
+                StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('projects')
+                      .orderBy('createdAt', descending: true)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Text('No projects found.', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      );
+                    }
+                    final docs = widget.isAdmin
+                        ? snapshot.data!.docs
+                        : snapshot.data!.docs.where((doc) {
+                            final data = doc.data() as Map<String, dynamic>;
+                            return data['visible'] ?? true;
+                          }).toList();
+
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: docs.length,
+                      itemBuilder: (context, index) {
+                        final doc = docs[index];
+                        final data = doc.data() as Map<String, dynamic>;
+                        final isVisible = data['visible'] ?? true;
+                        data['id'] = doc.id;
+
+                        return ListTile(
+                          title: Text(data['name'] ?? ''),
+                          trailing: widget.isAdmin
+                              ? Switch(
+                                  value: isVisible,
+                                  onChanged: (val) {
+                                    FirebaseFirestore.instance
+                                        .collection('projects')
+                                        .doc(doc.id)
+                                        .update({'visible': val});
+                                  },
+                                  activeColor: Theme.of(context).primaryColor,
+                                  inactiveThumbColor: Colors.grey,
+                                )
+                              : null,
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => ProjectScreen(
+                                  projectData: data,
+                                  isAdmin: widget.isAdmin,
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
             ],
           ),
         ),

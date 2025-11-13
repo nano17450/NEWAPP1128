@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'widgets/sign_in_screen.dart';
 import 'screens/home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../screens/project_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,8 +23,7 @@ class MyApp extends StatelessWidget {
       title: 'Company App',
       theme: appTheme,
       debugShowCheckedModeBanner: false,
-      routes: appRoutes,
-      initialRoute: '/', // Make sure '/' points to AuthGate in appRoutes
+      home: AuthGate(),
     );
   }
 }
@@ -36,53 +36,31 @@ class AuthGate extends StatefulWidget {
 class _AuthGateState extends State<AuthGate> {
   bool _signedIn = false;
   String? _activeUser;
+  String? _role;
 
-  void _handleSignIn(String email, String password) async {
-    if (email == 'admin@company.com' && password == '1234') {
-      setState(() {
-        _signedIn = true;
-        _activeUser = 'admin';
-      });
-      return;
-    }
-    if (email == 'user' && password == '1234') {
-      setState(() {
-        _signedIn = true;
-        _activeUser = 'user';
-      });
-      return;
-    }
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      setState(() {
-        _signedIn = true;
-        _activeUser = email;
-      });
-    } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Invalid credentials')),
-      );
-    }
+  void _handleSignIn(String email, String role) {
+    setState(() {
+      _signedIn = true;
+      _activeUser = email;
+      _role = role;
+    });
   }
 
   void _handleSignOut() {
     setState(() {
       _signedIn = false;
       _activeUser = null;
+      _role = null;
     });
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
-    if (_signedIn) {
-      return HomeScreen(
-        activeUser: _activeUser,
-        onSignOut: _handleSignOut,
-      );
-    }
-    return SignInScreen(onSignIn: _handleSignIn);
+    // Ignora el login y entra directo al HomeScreen
+    return HomeScreen(
+      activeUser: 'yurikm.elevate@gmail.com', // o cualquier valor de prueba
+      role: 'user',                // o 'admin'
+      onSignOut: () {},
+    );
   }
 }

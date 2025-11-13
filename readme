@@ -18,3 +18,40 @@ macos     1:296491821159:ios:29378badc589a988d4ccc2
 windows   1:296491821159:web:639c0c4b8a14d4dcd4ccc2
 
 
+
+
+
+// este es el codigo que debo usar para regresar a la funciond e sign in 
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    if (_signedIn) {
+      return HomeScreen(
+        activeUser: _activeUser!,
+        role: _role!,
+        onSignOut: _handleSignOut,
+      );
+    }
+    return SignInScreen(
+      onSignIn: _handleSignIn,
+    );
+  }
+}
+
+
+
+
+// codigo para evitar el admin 
+
+  @override
+  Widget build(BuildContext context) {
+    // Ignora el login y entra directo al HomeScreen
+    return HomeScreen(
+      activeUser: 'admin@demo.com', // o cualquier valor de prueba
+      role: 'admin',                // o 'admin'
+      onSignOut: () {},
+    );
+  }
+}
