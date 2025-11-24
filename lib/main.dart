@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'core/theme.dart';
-import 'routes/app_routes.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'widgets/sign_in_screen.dart';
 import 'screens/home_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../screens/project_screen.dart';
+import 'widgets/sign_in_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,11 +53,15 @@ class _AuthGateState extends State<AuthGate> {
 
  @override
   Widget build(BuildContext context) {
-    // Ignora el login y entra directo al HomeScreen
-    return HomeScreen(
-      activeUser: 'yurikm.elevate@gmail.com', // o cualquier valor de prueba
-      role: 'user',                // o 'admin'
-      onSignOut: () {},
+    if (_signedIn) {
+      return HomeScreen(
+        activeUser: _activeUser!,
+        role: _role!,
+        onSignOut: _handleSignOut,
+      );
+    }
+    return SignInScreen(
+      onSignIn: _handleSignIn,
     );
   }
 }

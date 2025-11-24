@@ -81,7 +81,7 @@ class _TeamMembersPanelState extends State<TeamMembersPanel> {
                   dataRowMaxHeight: 28,
                   columnSpacing: 70, // <-- más separación entre columnas
                   horizontalMargin: 6,
-                  headingRowColor: MaterialStateProperty.all(Colors.grey[200]),
+                  headingRowColor: WidgetStateProperty.all(Colors.grey[200]),
                   columns: [
                     DataColumn(label: Text('First', style: TextStyle(fontSize: 12))),
                     DataColumn(label: Text('Last', style: TextStyle(fontSize: 12))),

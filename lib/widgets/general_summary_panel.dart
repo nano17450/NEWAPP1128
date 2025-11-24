@@ -82,11 +82,11 @@ class _GeneralSummaryPanelState extends State<GeneralSummaryPanel> {
             ],
           ),
           SizedBox(height: 6),
-          FutureBuilder<QuerySnapshot>(
-            future: FirebaseFirestore.instance
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
                 .collection('users')
                 .where('visible', isEqualTo: true) // <-- solo usuarios visibles
-                .get(),
+                .snapshots(),
             builder: (context, userSnap) {
               if (!userSnap.hasData) return SizedBox(height: 40, child: Center(child: CircularProgressIndicator()));
               final users = userSnap.data!.docs;
@@ -145,7 +145,7 @@ class _GeneralSummaryPanelState extends State<GeneralSummaryPanel> {
                       dataRowMaxHeight: 28,
                       columnSpacing: 40,
                       horizontalMargin: 6,
-                      headingRowColor: MaterialStateProperty.all(Colors.grey[200]),
+                      headingRowColor: WidgetStateProperty.all(Colors.grey[200]),
                       columns: [
                         DataColumn(label: Text('Name', style: TextStyle(fontSize: 12))),
                         DataColumn(label: Text('Email', style: TextStyle(fontSize: 12))),

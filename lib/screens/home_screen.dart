@@ -12,7 +12,6 @@ import '../widgets/summary_panel.dart';
 import '../widgets/job_status_banner.dart';
 import '../widgets/team_members_panel.dart';
 import '../widgets/general_summary_panel.dart';
-import '../widgets/create_user_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   final String activeUser;
