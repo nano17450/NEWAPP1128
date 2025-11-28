@@ -73,18 +73,24 @@ class _CreateUserDialogState extends State<CreateUserDialog> {
                     });
                     try {
                       // 1. Create user in Firebase Auth
-                      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                      UserCredential userCredential = await FirebaseAuth
+                          .instance
+                          .createUserWithEmailAndPassword(
                         email: email!,
                         password: '123456',
                       );
 
                       // 2. Save user data in Firestore with role "user"
-                      await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(userCredential.user!.uid)
+                          .set({
                         'email': email,
                         'firstname': firstname,
                         'lastname': lastname,
                         'phone': phone,
                         'role': 'user',
+                        'visible': true,
                         'createdAt': FieldValue.serverTimestamp(),
                       });
 
@@ -93,7 +99,9 @@ class _CreateUserDialogState extends State<CreateUserDialog> {
 
                       Navigator.of(context).pop();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('User created and welcome email sent.')),
+                        SnackBar(
+                            content:
+                                Text('User created and welcome email sent.')),
                       );
                     } on FirebaseAuthException catch (e) {
                       setState(() {
@@ -109,7 +117,10 @@ class _CreateUserDialogState extends State<CreateUserDialog> {
                   }
                 },
           child: loading
-              ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+              ? SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2))
               : Text('Create'),
         ),
       ],

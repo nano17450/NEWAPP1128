@@ -6,7 +6,9 @@ class ProjectScreen extends StatefulWidget {
   final Map<String, dynamic> projectData;
   final bool isAdmin;
 
-  const ProjectScreen({Key? key, required this.projectData, required this.isAdmin}) : super(key: key);
+  const ProjectScreen(
+      {Key? key, required this.projectData, required this.isAdmin})
+      : super(key: key);
 
   @override
   State<ProjectScreen> createState() => _ProjectScreenState();
@@ -23,9 +25,18 @@ class _ProjectScreenState extends State<ProjectScreen> {
     super.initState();
     _projectData = Map<String, dynamic>.from(widget.projectData);
     for (var key in [
-      'name', 'code', 'street', 'number', 'city', 'state', 'zip', 'country', 'manager'
+      'name',
+      'code',
+      'street',
+      'number',
+      'city',
+      'state',
+      'zip',
+      'country',
+      'manager'
     ]) {
-      _controllers[key] = TextEditingController(text: _projectData[key]?.toString() ?? '');
+      _controllers[key] =
+          TextEditingController(text: _projectData[key]?.toString() ?? '');
     }
   }
 
@@ -51,11 +62,14 @@ class _ProjectScreenState extends State<ProjectScreen> {
       }
       try {
         // Obtén el documento más reciente antes de actualizar
-        final docRef = FirebaseFirestore.instance.collection('projects').doc(docId);
+        final docRef =
+            FirebaseFirestore.instance.collection('projects').doc(docId);
         final docSnap = await docRef.get();
         if (!docSnap.exists) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: El proyecto ya no existe en la base de datos.')),
+            SnackBar(
+                content: Text(
+                    'Error: El proyecto ya no existe en la base de datos.')),
           );
           return;
         }
@@ -86,7 +100,8 @@ class _ProjectScreenState extends State<ProjectScreen> {
             width: 110,
             child: Text(
               label,
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[700]),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, color: Colors.grey[700]),
             ),
           ),
           Expanded(
@@ -96,16 +111,25 @@ class _ProjectScreenState extends State<ProjectScreen> {
                     decoration: InputDecoration(
                       isDense: true,
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                     ),
-                    validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                    validator: (v) =>
+                        (v == null || v.isEmpty) ? 'Required' : null,
                   )
                 : Text(
                     key == 'createdAt'
                         ? (_projectData['createdAt'] != null
                             ? (_projectData['createdAt'] is DateTime
-                                ? (_projectData['createdAt'] as DateTime).toString().split(' ').first
-                                : (_projectData['createdAt'] as Timestamp).toDate().toString().split(' ').first)
+                                ? (_projectData['createdAt'] as DateTime)
+                                    .toString()
+                                    .split(' ')
+                                    .first
+                                : (_projectData['createdAt'] as Timestamp)
+                                    .toDate()
+                                    .toString()
+                                    .split(' ')
+                                    .first)
                             : '')
                         : (_projectData[key]?.toString() ?? ''),
                     style: TextStyle(fontSize: 15),
@@ -216,26 +240,32 @@ class _ProjectScreenState extends State<ProjectScreen> {
               ? FloatingActionButton.extended(
                   onPressed: _saveChanges,
                   icon: Icon(Icons.save),
-                  label: Text('Guardar'),
+                  label: Text('Save'),
                   backgroundColor: Colors.blue,
                 )
               : FloatingActionButton.extended(
                   onPressed: () async {
-                    // Recarga el documento más reciente antes de editar
+                    // Reload the latest document before editing
                     final docId = _projectData['id'];
                     if (docId != null) {
-                      final docSnap = await FirebaseFirestore.instance.collection('projects').doc(docId).get();
+                      final docSnap = await FirebaseFirestore.instance
+                          .collection('projects')
+                          .doc(docId)
+                          .get();
                       if (docSnap.exists) {
                         setState(() {
                           _projectData.addAll(docSnap.data()!);
                           for (var key in _controllers.keys) {
-                            _controllers[key]?.text = _projectData[key]?.toString() ?? '';
+                            _controllers[key]?.text =
+                                _projectData[key]?.toString() ?? '';
                           }
                           _editing = true;
                         });
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('El proyecto ya no existe en la base de datos.')),
+                          SnackBar(
+                              content: Text(
+                                  'The project no longer exists in the database.')),
                         );
                       }
                     } else {
@@ -245,12 +275,14 @@ class _ProjectScreenState extends State<ProjectScreen> {
                     }
                   },
                   icon: Icon(Icons.edit),
-                  label: Text('Editar'),
+                  label: Text('Edit'),
                   backgroundColor: Colors.blue,
                 ))
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       bottomNavigationBar: BottomAppBar(
+        elevation: 0,
+        color: Colors.transparent,
         shape: CircularNotchedRectangle(),
         notchMargin: 10.0,
         child: SizedBox(height: 48),

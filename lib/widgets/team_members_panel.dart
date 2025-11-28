@@ -6,7 +6,8 @@ class TeamMembersPanel extends StatefulWidget {
   final double width;
   final bool isAdmin;
 
-  const TeamMembersPanel({Key? key, this.width = 900, this.isAdmin = false}) : super(key: key);
+  const TeamMembersPanel({Key? key, this.width = 900, this.isAdmin = false})
+      : super(key: key);
 
   @override
   State<TeamMembersPanel> createState() => _TeamMembersPanelState();
@@ -14,7 +15,10 @@ class TeamMembersPanel extends StatefulWidget {
 
 class _TeamMembersPanelState extends State<TeamMembersPanel> {
   Future<void> _toggleVisibility(String userId, bool current) async {
-    await FirebaseFirestore.instance.collection('users').doc(userId).update({'visible': !current});
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .update({'visible': !current});
     setState(() {});
   }
 
@@ -23,10 +27,15 @@ class _TeamMembersPanelState extends State<TeamMembersPanel> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Delete User'),
-        content: Text('Are you sure you want to delete $email? This action cannot be undone.'),
+        content: Text(
+            'Are you sure you want to delete $email? This action cannot be undone.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: Text('Delete')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('Cancel')),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text('Delete')),
         ],
       ),
     );
@@ -35,6 +44,8 @@ class _TeamMembersPanelState extends State<TeamMembersPanel> {
       setState(() {});
     }
   }
+
+  // Removed admin bulk-visible helper to avoid mass-updates from UI
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +66,7 @@ class _TeamMembersPanelState extends State<TeamMembersPanel> {
               padding: const EdgeInsets.only(bottom: 8.0),
               child: ElevatedButton.icon(
                 icon: Icon(Icons.person_add),
-                label: Text('Crear usuario'),
+                label: Text('Create user'),
                 onPressed: () {
                   showDialog(
                     context: context,
@@ -64,13 +75,16 @@ class _TeamMembersPanelState extends State<TeamMembersPanel> {
                 },
               ),
             ),
-          Text('Team Members', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text('Team Members',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           SizedBox(height: 6),
           FutureBuilder<QuerySnapshot>(
             future: FirebaseFirestore.instance.collection('users').get(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
-                return SizedBox(height: 40, child: Center(child: CircularProgressIndicator()));
+                return SizedBox(
+                    height: 40,
+                    child: Center(child: CircularProgressIndicator()));
               }
               final users = snapshot.data!.docs;
               return SingleChildScrollView(
@@ -83,30 +97,44 @@ class _TeamMembersPanelState extends State<TeamMembersPanel> {
                   horizontalMargin: 6,
                   headingRowColor: WidgetStateProperty.all(Colors.grey[200]),
                   columns: [
-                    DataColumn(label: Text('First', style: TextStyle(fontSize: 12))),
-                    DataColumn(label: Text('Last', style: TextStyle(fontSize: 12))),
-                    DataColumn(label: Text('Email', style: TextStyle(fontSize: 12))),
-                    DataColumn(label: Text('Phone', style: TextStyle(fontSize: 12))),
-                    DataColumn(label: Text('Role', style: TextStyle(fontSize: 12))),
-                    DataColumn(label: Text('Visible', style: TextStyle(fontSize: 12))),
+                    DataColumn(
+                        label: Text('First', style: TextStyle(fontSize: 12))),
+                    DataColumn(
+                        label: Text('Last', style: TextStyle(fontSize: 12))),
+                    DataColumn(
+                        label: Text('Email', style: TextStyle(fontSize: 12))),
+                    DataColumn(
+                        label: Text('Phone', style: TextStyle(fontSize: 12))),
+                    DataColumn(
+                        label: Text('Role', style: TextStyle(fontSize: 12))),
+                    DataColumn(
+                        label: Text('Visible', style: TextStyle(fontSize: 12))),
                     DataColumn(label: Text('')),
                   ],
                   rows: users.map((doc) {
                     final data = doc.data() as Map<String, dynamic>;
                     return DataRow(
                       cells: [
-                        DataCell(Text(data['firstName'] ?? '-', style: TextStyle(fontSize: 12))),
-                        DataCell(Text(data['lastName'] ?? '-', style: TextStyle(fontSize: 12))),
-                        DataCell(Text(data['email'] ?? '-', style: TextStyle(fontSize: 12))),
-                        DataCell(Text(data['phone'] ?? '-', style: TextStyle(fontSize: 12))),
-                        DataCell(Text(data['role'] ?? '-', style: TextStyle(fontSize: 12))),
+                        DataCell(Text(data['firstName'] ?? '-',
+                            style: TextStyle(fontSize: 12))),
+                        DataCell(Text(data['lastName'] ?? '-',
+                            style: TextStyle(fontSize: 12))),
+                        DataCell(Text(data['email'] ?? '-',
+                            style: TextStyle(fontSize: 12))),
+                        DataCell(Text(data['phone'] ?? '-',
+                            style: TextStyle(fontSize: 12))),
+                        DataCell(Text(data['role'] ?? '-',
+                            style: TextStyle(fontSize: 12))),
                         DataCell(
                           Transform.scale(
-                            scale: 0.7, // Ajusta este valor para hacerlo más pequeño o más grande
+                            scale:
+                                0.7, // Ajusta este valor para hacerlo más pequeño o más grande
                             child: Switch(
                               value: data['visible'] ?? true,
-                              onChanged: (val) => _toggleVisibility(doc.id, data['visible'] ?? true),
-                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              onChanged: (val) => _toggleVisibility(
+                                  doc.id, data['visible'] ?? true),
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
                             ),
                           ),
                         ),
