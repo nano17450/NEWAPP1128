@@ -15,23 +15,44 @@ class SignInScreen extends StatelessWidget {
         ((first.isNotEmpty ? first[0] : '') + (last.isNotEmpty ? last[0] : ''))
             .toUpperCase();
 
-    if (photo != null && photo.isNotEmpty) {
-      return CircleAvatar(
-          radius: radius,
-          backgroundImage: NetworkImage(photo),
-          backgroundColor: Colors.transparent);
-    }
+    // Black border for strong outline
+    final borderColor = Colors.black;
 
-    return CircleAvatar(
-      radius: radius,
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      child: Text(
-        initials.isNotEmpty ? initials : 'U',
-        style: TextStyle(
+    Widget innerAvatar;
+    if (photo != null && photo.isNotEmpty) {
+      innerAvatar = CircleAvatar(
+        radius: radius,
+        backgroundImage: NetworkImage(photo),
+        backgroundColor: Colors.transparent,
+      );
+    } else {
+      innerAvatar = CircleAvatar(
+        radius: radius,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        child: Text(
+          initials.isNotEmpty ? initials : 'U',
+          style: TextStyle(
             color: Colors.white,
             fontSize: radius / 1.8,
-            fontWeight: FontWeight.bold),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+    }
+
+    // Outer circle with slightly thicker border
+    return Container(
+      width: radius * 2 + 6,
+      height: radius * 2 + 6,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: borderColor,
+          width: 3,
+        ),
       ),
+      alignment: Alignment.center,
+      child: innerAvatar,
     );
   }
 
@@ -80,13 +101,11 @@ class SignInScreen extends StatelessWidget {
                     return LayoutBuilder(builder: (context, constraints) {
                       final width = constraints.maxWidth;
                       int cross = 4;
-                      double avatarRadius = 32;
+                      double avatarRadius = 40;
                       if (width < 600) {
                         cross = 2;
-                        avatarRadius = 28;
                       } else if (width < 900) {
                         cross = 3;
-                        avatarRadius = 30;
                       }
 
                       return GridView.builder(
@@ -97,7 +116,7 @@ class SignInScreen extends StatelessWidget {
                           crossAxisCount: cross,
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
-                          childAspectRatio: 1,
+                          childAspectRatio: 0.9,
                         ),
                         itemCount: users.length,
                         itemBuilder: (context, index) {
@@ -105,50 +124,49 @@ class SignInScreen extends StatelessWidget {
                           final user =
                               (doc.data() ?? {}) as Map<String, dynamic>;
                           final email = (user['email'] ?? '') as String;
-
-                          final first = (user['firstname'] ?? '') as String;
-                          final last = (user['lastname'] ?? '') as String;
-                          final fullName = ((first + ' ' + last).trim()).isNotEmpty
-                              ? (first + ' ' + last).trim()
-                              : (user['displayName'] ?? user['name'] ?? 'User');
-                          final position = (user['position'] ?? '') as String;
+                          final firstName = (user['firstname'] ?? '') as String;
+                          final lastName = (user['lastname'] ?? '') as String;
+                          final fullName =
+                              ('$firstName $lastName').trim().isNotEmpty
+                                  ? ('$firstName $lastName').trim()
+                                  : email;
+                          final role = (user['position'] ?? user['role'] ?? '')
+                              as String;
 
                           return Column(
-                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               InkWell(
-                                borderRadius: BorderRadius.circular(999),
+                                borderRadius: BorderRadius.circular(
+                                    avatarRadius + 8), // circle area only
                                 onTap: () => onSignIn(
                                     email, (user['role'] ?? 'user') as String),
                                 child: _avatarFor(user, context, avatarRadius),
                               ),
-                              SizedBox(height: 8),
-                              ConstrainedBox(
-                                constraints: BoxConstraints(maxWidth: avatarRadius * 4),
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      fullName,
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    if (position.isNotEmpty) ...[
-                                      SizedBox(height: 2),
-                                      Text(
-                                        position,
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey[600]),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ]
-                                  ],
+                              const SizedBox(height: 8),
+                              Text(
+                                fullName,
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
                                 ),
-                              )
+                              ),
+                              if (role.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  role,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ],
                             ],
                           );
                         },

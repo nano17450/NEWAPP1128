@@ -54,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final bytes = utf8.encode(csv);
     final blob = html.Blob([bytes]);
     final url = html.Url.createObjectUrlFromBlob(blob);
-    html.AnchorElement(href: url)
+    final anchor = html.AnchorElement(href: url)
       ..setAttribute('download', 'projects.csv')
       ..click();
     html.Url.revokeObjectUrl(url);
@@ -64,9 +64,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final isAdmin = widget.role == 'admin';
     final firebaseUser = FirebaseAuth.instance.currentUser;
-  final displayUser = widget.activeUser.isNotEmpty
-    ? widget.activeUser
-    : (firebaseUser != null ? (firebaseUser.email ?? 'Unknown') : 'Unknown');
+    final displayUser = widget.activeUser ??
+        (firebaseUser != null ? firebaseUser.email : 'Unknown');
 
     return Scaffold(
       appBar: AppBar(
@@ -88,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             Spacer(),
             Text(
-              displayUser,
+              displayUser ?? '',
               style: TextStyle(fontSize: 14, color: Colors.white),
             ),
             SizedBox(width: 8),
@@ -262,98 +261,57 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         ),
       ),
-      floatingActionButton: null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-      bottomNavigationBar: BottomAppBar(
-        elevation: 0,
-        color: Colors.transparent,
-        shape: CircularNotchedRectangle(),
-        notchMargin: 10.0,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(right: 16.0, bottom: 16.0, left: 16.0),
+        child: Align(
+          alignment: Alignment.bottomRight,
           child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Spacer(),
-              // Actions aligned right-to-left
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Invoice (always visible)
-                  _BottomActionButton(
-                    key: ValueKey('btn_invoice'),
-                    tooltip: 'Insert Invoice',
-                    backgroundColor: Colors.blue[800],
-                    icon: Icons.attach_money,
-                    onPressed: () {
-                      // Open the provided Google Apps Script URL in a new browser tab (web)
-                      const scriptUrl = 'https://script.google.com/macros/s/AKfycby-V_zQUC1RTU78cusemDseT1pMAYEjwQqhouJ_LZCvbZ55EGlptKptlGm3gPJPi5Mp/exec';
-                      try {
-                        html.window.open(scriptUrl, '_blank');
-                      } catch (e) {
-                        // Fallback: navigate to app's InsertInvoiceScreen if opening a new tab fails
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => InsertInvoiceScreen()),
-                        );
-                      }
-                    },
-                  ),
-                  SizedBox(width: 12),
-                  if (isAdmin) ...[
-                    _BottomActionButton(
-                      key: ValueKey('btn_create_project'),
-                      tooltip: 'Create Project',
-                      backgroundColor: Colors.blue,
-                      icon: Icons.add,
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => CreateProjectDialog(),
-                        );
-                      },
-                    ),
-                    SizedBox(width: 12),
-                    _BottomActionButton(
-                      key: ValueKey('btn_export_projects'),
-                      tooltip: 'Export Projects',
-                      backgroundColor: Colors.orange,
-                      icon: Icons.download,
-                      onPressed: exportProjectsToCSV,
-                    ),
-                  ],
-                ],
+              // Right-most: Insert Invoice (always visible)
+              FloatingActionButton(
+                heroTag: 'invoice',
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => InsertInvoiceScreen()),
+                  );
+                },
+                backgroundColor: Colors.blue[800],
+                child: Icon(Icons.attach_money, size: 32),
+                tooltip: 'Insert Invoice',
               ),
+              if (isAdmin) ...[
+                const SizedBox(width: 16),
+                // Middle: Create Project
+                FloatingActionButton(
+                  heroTag: 'create_project',
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => CreateProjectDialog(),
+                    );
+                  },
+                  backgroundColor: Colors.blue,
+                  child: Icon(Icons.add),
+                  tooltip: 'Create Project',
+                ),
+                const SizedBox(width: 16),
+                // Left-most: Export Projects
+                FloatingActionButton(
+                  heroTag: 'export_projects',
+                  onPressed: exportProjectsToCSV,
+                  backgroundColor: Colors.orange,
+                  child: Icon(Icons.download, size: 28),
+                  tooltip: 'Export Projects',
+                ),
+              ],
             ],
           ),
         ),
       ),
-    );
-  }
-}
-
-class _BottomActionButton extends StatelessWidget {
-  final String tooltip;
-  final Color? backgroundColor;
-  final IconData icon;
-  final VoidCallback onPressed;
-
-  const _BottomActionButton({Key? key, required this.tooltip, this.backgroundColor, required this.icon, required this.onPressed}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          padding: EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: backgroundColor ?? Theme.of(context).primaryColor,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: Colors.white, size: 20),
-        ),
-      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      bottomNavigationBar: SizedBox.shrink(),
     );
   }
 }
