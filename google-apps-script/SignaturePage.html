@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Control</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .btn {
+            padding: 15px 30px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-in {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-out {
+            background-color: #f44336;
+            color: white;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .current-time {
+            font-size: 24px;
+            text-align: center;
+            margin: 20px 0;
+            color: #333;
+        }
+        .location-info {
+            margin: 10px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Attendance Control</h1>
+
+        <div class="current-time" id="currentTime"></div>
+        <div id="status" class="status hidden"></div>
+        <div class="location-info" id="locationInfo"></div>
+
+        <div style="text-align: center;">
+            <button class="btn btn-in" onclick="clockIn()">Clock In</button>
+            <button class="btn btn-out" onclick="clockOut()">Clock Out</button>
+        </div>
+
+        <div id="recordsContainer">
+            <h3>Today’s Records:</h3>
+            <div id="todayRecords"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentLocation = null;
+        
+        // Actualizar reloj en tiempo real
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+        
+        // Obtener geolocalización
+        function getCurrentLocation() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    reject('Geolocalización no soportada');
+                    return;
+                }
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const location = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude,
+                            accuracy: position.coords.accuracy,
+                            timestamp: new Date().toISOString()
+                        };
+                        resolve(location);
+                    },
+                    (error) => {
+                        reject(`Error de geolocalización: ${error.message}`);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 300000
+                    }
+                );
+            });
+        }
+        
+        // Mostrar información de ubicación
+        function displayLocationInfo(location) {
+            const locationDiv = document.getElementById('locationInfo');
+            locationDiv.innerHTML = `
+                <strong>Location:</strong><br>
+                Latitude: ${location.latitude.toFixed(6)}<br>
+                Longitude: ${location.longitude.toFixed(6)}<br>
+                Accuracy: ${location.accuracy.toFixed(0)} meters
+            `;
+        }
+        
+        // Mostrar status
+        function showStatus(message, isError = false) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${isError ? 'error' : 'success'}`;
+            statusDiv.style.backgroundColor = isError ? '#ffebee' : '#e8f5e8';
+            statusDiv.style.color = isError ? '#c62828' : '#2e7d32';
+            statusDiv.classList.remove('hidden');
+            
+            setTimeout(() => {
+                statusDiv.classList.add('hidden');
+            }, 5000);
+        }
+        
+        // Guardar registro
+        function saveRecord(type, location) {
+            const record = {
+                type: type,
+                timestamp: new Date().toISOString(),
+                location: location,
+                date: new Date().toDateString()
+            };
+            
+            // Obtener registros existentes
+            let records = JSON.parse(localStorage.getItem('attendanceRecords') || '[]');
+            records.push(record);
+            localStorage.setItem('attendanceRecords', JSON.stringify(records));
+            
+            // Aquí puedes agregar la llamada a Google Apps Script
+            // sendToGoogleScript(record);
+            
+            updateTodayRecords();
+            return record;
+        }
+        
+        // Clock In
+        async function clockIn() {
+            try {
+                showStatus('Getting location...', false);
+                const location = await getCurrentLocation();
+                displayLocationInfo(location);
+                
+                const record = saveRecord('check_in', location);
+                showStatus(`Clock In recorded at ${new Date(record.timestamp).toLocaleTimeString('en-US')}`, false);
+                
+            } catch (error) {
+                showStatus(`Clock In error: ${error}`, true);
+            }
+        }
+        
+        // Clock Out
+        async function clockOut() {
+            try {
+                showStatus('Getting location...', false);
+                const location = await getCurrentLocation();
+                displayLocationInfo(location);
+                
+                const record = saveRecord('check_out', location);
+                showStatus(`Clock Out recorded at ${new Date(record.timestamp).toLocaleTimeString('en-US')}`, false);
+                
+            } catch (error) {
+                showStatus(`Clock Out error: ${error}`, true);
+            }
+        }
+        
+        // Mostrar registros del día
+        function updateTodayRecords() {
+            const records = JSON.parse(localStorage.getItem('attendanceRecords') || '[]');
+            const today = new Date().toDateString();
+            const todayRecords = records.filter(record => record.date === today);
+            
+            const recordsDiv = document.getElementById('todayRecords');
+            if (todayRecords.length === 0) {
+                recordsDiv.innerHTML = '<p>No records for today.</p>';
+                return;
+            }
+            
+            recordsDiv.innerHTML = todayRecords.map(record => `
+                <div style="margin: 10px 0; padding: 10px; background: #f9f9f9; border-radius: 5px;">
+                    <strong>${record.type === 'check_in' ? 'Clock In' : 'Clock Out'}</strong><br>
+                    Time: ${new Date(record.timestamp).toLocaleTimeString('en-US')}<br>
+                    Location: ${record.location.latitude.toFixed(6)}, ${record.location.longitude.toFixed(6)}
+                </div>
+            `).join('');
+        }
+        
+        // Función para enviar a Google Apps Script (implementar según tu backend)
+        function sendToGoogleScript(record) {
+            // Implementar llamada a tu función de Google Apps Script
+            // google.script.run.saveAttendanceRecord(record);
+        }
+        
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            updateClock();
+            setInterval(updateClock, 1000);
+            updateTodayRecords();
+            
+            // Solicitar permisos de geolocalización al cargar
+            if (navigator.geolocation) {
+                getCurrentLocation().then(location => {
+                    currentLocation = location;
+                    displayLocationInfo(location);
+                }).catch(error => {
+                    console.log('No se pudo obtener la ubicación inicial:', error);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
