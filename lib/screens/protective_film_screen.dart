@@ -28,7 +28,7 @@ class _ProtectiveFilmScreenState extends State<ProtectiveFilmScreen> {
   String _selectedUnit = 'sqm';
   String _filterStatus = 'all';
 
-  final List<String> _filmTypes = [
+  static const List<String> _filmTypes = [
     'Clear',
     'Frosted',
     'Tinted',
@@ -37,8 +37,15 @@ class _ProtectiveFilmScreenState extends State<ProtectiveFilmScreen> {
     'UV Protection',
   ];
 
-  final List<String> _units = ['sqm', 'sqft', 'rolls', 'meters'];
-  final List<String> _statusOptions = ['all', 'pending', 'approved', 'ordered', 'delivered'];
+  static const List<String> _units = ['sqm', 'sqft', 'rolls', 'meters'];
+  static const List<String> _statusOptions = ['all', 'pending', 'approved', 'ordered', 'delivered'];
+
+  // Status colors
+  static const Color _statusPendingColor = Colors.orange;
+  static const Color _statusApprovedColor = Colors.blue;
+  static const Color _statusOrderedColor = Colors.purple;
+  static const Color _statusDeliveredColor = Colors.green;
+  static const Color _statusDefaultColor = Colors.grey;
 
   @override
   void dispose() {
@@ -150,15 +157,15 @@ class _ProtectiveFilmScreenState extends State<ProtectiveFilmScreen> {
   Color _getStatusColor(String status) {
     switch (status) {
       case 'pending':
-        return Colors.orange;
+        return _statusPendingColor;
       case 'approved':
-        return Colors.blue;
+        return _statusApprovedColor;
       case 'ordered':
-        return Colors.purple;
+        return _statusOrderedColor;
       case 'delivered':
-        return Colors.green;
+        return _statusDeliveredColor;
       default:
-        return Colors.grey;
+        return _statusDefaultColor;
     }
   }
 
@@ -440,7 +447,7 @@ class _ProtectiveFilmScreenState extends State<ProtectiveFilmScreen> {
                               order.status.toUpperCase(),
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 10,
+                                fontSize: 11,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
