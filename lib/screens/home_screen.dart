@@ -16,6 +16,7 @@ import '../widgets/summary_panel.dart';
 import '../widgets/job_status_banner.dart';
 import '../widgets/team_members_panel.dart';
 import '../widgets/general_summary_panel.dart';
+import 'protective_film_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String activeUser;
@@ -1049,6 +1050,23 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            FloatingActionButton(
+              heroTag: 'protective_film',
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ProtectiveFilmScreen(
+                      isAdmin: isAdmin,
+                      activeUser: widget.activeUser,
+                    ),
+                  ),
+                );
+              },
+              backgroundColor: Colors.teal,
+              child: Icon(Icons.layers, size: 32),
+              tooltip: 'Protective Film Orders',
+            ),
+            SizedBox(width: 16),
             FloatingActionButton(
               heroTag: 'invoice',
               onPressed: _openInvoiceScript,
