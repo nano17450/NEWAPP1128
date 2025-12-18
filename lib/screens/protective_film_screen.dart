@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import '../models/protective_film_order.dart';
 
@@ -63,9 +62,16 @@ class _ProtectiveFilmScreenState extends State<ProtectiveFilmScreen> {
   }
 
   Future<void> _submitOrder() async {
-    if (!_formKey.currentState!.validate() || _selectedProjectId == null) {
+    if (_selectedProjectId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select a project and enter all required fields')),
+        SnackBar(content: Text('Please select a project')),
+      );
+      return;
+    }
+
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter valid quantity')),
       );
       return;
     }
@@ -180,7 +186,7 @@ class _ProtectiveFilmScreenState extends State<ProtectiveFilmScreen> {
                 future: _getProjects(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
-                    return CircularProgressIndicator();
+                    return Center(child: CircularProgressIndicator());
                   }
                   final projects = snapshot.data!;
                   return DropdownButtonFormField<String>(
@@ -467,9 +473,6 @@ class _ProtectiveFilmScreenState extends State<ProtectiveFilmScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final firebaseUser = FirebaseAuth.instance.currentUser;
-    final displayUser = widget.activeUser ?? (firebaseUser?.email ?? 'Unknown');
-
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -480,7 +483,7 @@ class _ProtectiveFilmScreenState extends State<ProtectiveFilmScreen> {
             ),
             Spacer(),
             Text(
-              displayUser,
+              widget.activeUser,
               style: TextStyle(fontSize: 14, color: Colors.white),
             ),
           ],
