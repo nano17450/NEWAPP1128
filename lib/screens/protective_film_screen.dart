@@ -71,11 +71,19 @@ class _ProtectiveFilmScreenState extends State<ProtectiveFilmScreen> {
     }
 
     try {
+      final quantityValue = double.tryParse(_quantityController.text);
+      if (quantityValue == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Invalid quantity value')),
+        );
+        return;
+      }
+
       final order = ProtectiveFilmOrder(
         projectName: _selectedProjectName!,
         projectId: _selectedProjectId!,
         filmType: _selectedFilmType,
-        quantity: double.parse(_quantityController.text),
+        quantity: quantityValue,
         unit: _selectedUnit,
         orderedBy: widget.activeUser,
         orderedAt: DateTime.now(),
@@ -252,7 +260,7 @@ class _ProtectiveFilmScreenState extends State<ProtectiveFilmScreen> {
                             }
                             final parsedValue = double.tryParse(value);
                             if (parsedValue == null || parsedValue <= 0) {
-                              return 'Enter valid quantity';
+                              return 'Quantity must be greater than 0';
                             }
                             return null;
                           },
