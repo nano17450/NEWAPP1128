@@ -65,7 +65,7 @@ class _ProtectiveFilmScreenState extends State<ProtectiveFilmScreen> {
   Future<void> _submitOrder() async {
     if (!_formKey.currentState!.validate() || _selectedProjectId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please fill all required fields')),
+        SnackBar(content: Text('Please select a project and enter all required fields')),
       );
       return;
     }
@@ -189,13 +189,16 @@ class _ProtectiveFilmScreenState extends State<ProtectiveFilmScreen> {
                       );
                     }).toList(),
                     onChanged: (value) {
-                      setState(() {
-                        _selectedProjectId = value;
-                        _selectedProjectName = projects.firstWhere(
+                      if (value != null) {
+                        final selectedProject = projects.firstWhere(
                           (p) => p['id'] == value,
-                          orElse: () => {'name': 'Unknown'},
-                        )['name'];
-                      });
+                          orElse: () => {'id': value, 'name': 'Unknown'},
+                        );
+                        setState(() {
+                          _selectedProjectId = value;
+                          _selectedProjectName = selectedProject['name'];
+                        });
+                      }
                     },
                     validator: (value) => value == null ? 'Please select a project' : null,
                   );
@@ -247,7 +250,8 @@ class _ProtectiveFilmScreenState extends State<ProtectiveFilmScreen> {
                             if (value == null || value.isEmpty) {
                               return 'Required';
                             }
-                            if (double.tryParse(value) == null || double.parse(value) <= 0) {
+                            final parsedValue = double.tryParse(value);
+                            if (parsedValue == null || parsedValue <= 0) {
                               return 'Enter valid quantity';
                             }
                             return null;
